@@ -1,0 +1,65 @@
+name: Build and publish Arch package
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Sy --noconfirm archlinux-keyring
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel git clang
+
+      - name: Checkout flagparser
+        uses: actions/checkout@v6
+
+      - name: Build package
+        run: |
+          useradd -m builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+          su builder -c '
+            cd "$GITHUB_WORKSPACE"
+            makepkg --noconfirm
+          '
+
+      - name: Clone package repository
+        env:
+          NUCLEUS_TOKEN: ${{ secrets.NUCLEUS_TOKEN }}
+        run: |
+          git clone \
+            "https://x-access-token:${NUCLEUS_TOKEN}@github.com/Helix-ISA/nucleus.git" \
+            nucleus
+
+      - name: Add package to repository
+        run: |
+          cp ./*.pkg.tar.zst nucleus/
+
+          cd nucleus
+          ./build.sh
+
+      - name: Push package repository
+        working-directory: nucleus
+        env:
+          NUCLEUS_TOKEN: ${{ secrets.NUCLEUS_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote set-url origin \
+            "https://x-access-token:${NUCLEUS_TOKEN}@github.com/Helix-ISA/nucleus.git"
+
+          git add .
+          git commit -m "action: Update flagparser package"
+          git push origin master
+

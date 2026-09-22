@@ -1,0 +1,13 @@
+CompileFlags:
+  Add:
+    - -Wall
+    - -Wextra
+    - -Werror
+    - -Wpedantic
+    - -I/home/alex/Helix-ISA/flagparser/include/
+
+Diagonstics:
+  UnusedIncludes: Strict
+
+Index:
+  Background: Build
