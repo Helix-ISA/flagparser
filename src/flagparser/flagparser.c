@@ -9,8 +9,8 @@ static const fp_flag *find_long_option(
 	const char *name
 )
 {
-	for (u32 i = 0; i < config->arg_count; i++) {
-		const fp_flag *option = &config->args[i];
+	for (u32 i = 0; i < config->flag_count; i++) {
+		const fp_flag *option = &config->flags[i];
 
 		if (option->lname && strcmp(option->lname, name) == 0) {
 			return option;
@@ -25,8 +25,8 @@ static const fp_flag *find_short_option(
 	const char *name
 )
 {
-	for (u32 i = 0; i < config->arg_count; i++) {
-		const fp_flag *option = &config->args[i];
+	for (u32 i = 0; i < config->flag_count; i++) {
+		const fp_flag *option = &config->flags[i];
 
 		if (option->sname && strcmp(option->sname, name) == 0) {
 			return option;
@@ -43,19 +43,19 @@ static b8 add_parsed_arg(
 )
 {
 	fp_parsed_flag *new_options = realloc(
-			result->args,
-			(result->arg_count + 1) * sizeof(*result->args)
+			result->flags,
+			(result->flag_count + 1) * sizeof(*result->flags)
 	);
 
 	if (!new_options)
 		return failure;
 
-	result->args = new_options;
+	result->flags = new_options;
 
-	result->args[result->arg_count].arg = arg;
-	result->args[result->arg_count].value = value;
+	result->flags[result->flag_count].flag = arg;
+	result->flags[result->flag_count].value = value;
 
-	result->arg_count++;
+	result->flag_count++;
 
 	return success;
 }
@@ -87,15 +87,15 @@ static b8 parse_error(fp_result *result, const char *message)
 
 static b8 result_has_arg(const fp_result *result, const fp_flag *arg)
 {
-	for (size_t i = 0; i < result->arg_count; i++) {
-		if (result->args[i].arg == arg)
+	for (size_t i = 0; i < result->flag_count; i++) {
+		if (result->flags[i].flag == arg)
 			return true;
 	}
 
 	return false;
 }
 
-b8 cli_parse(const fp_config *config, int argc, char **argv, fp_result *result)
+b8 fp_flag_parse(const fp_config *config, int argc, char **argv, fp_result *result)
 {
 	if (!config || !result)
 		return failure;
@@ -150,13 +150,13 @@ b8 cli_parse(const fp_config *config, int argc, char **argv, fp_result *result)
 
 			const char *value = NULL;
 
-			if (arg->arg_type == FLAG_ARG_NONE) {
+			if (arg->flag_type == FLAG_ARG_NONE) {
 				if (inline_value)
 					return parse_error(
 						result,
 						"option does not accept a value"
 					);
-			} else if (arg->arg_type == FLAG_ARG_REQUIRED) {
+			} else if (arg->flag_type == FLAG_ARG_REQUIRED) {
 				if (inline_value) {
 					value = inline_value;
 				} else {
@@ -169,7 +169,7 @@ b8 cli_parse(const fp_config *config, int argc, char **argv, fp_result *result)
 
 					value = argv[++i];
 				}
-			} else if (arg->arg_type == FLAG_ARG_OPTIONAL) {
+			} else if (arg->flag_type == FLAG_ARG_OPTIONAL) {
 				if (inline_value) {
 					value = inline_value;
 				} else if (i + 1 < argc && argv[i + 1][0] != '-') {
@@ -200,13 +200,13 @@ b8 cli_parse(const fp_config *config, int argc, char **argv, fp_result *result)
 
 				const char *value = NULL;
 
-				if (arg->arg_type == FLAG_ARG_NONE) {
+				if (arg->flag_type == FLAG_ARG_NONE) {
 				} else {
 					if (*sargs != '\0') {
 						value = sargs;
 
 						sargs += strlen(sargs);
-					} else if (arg->arg_type == FLAG_ARG_REQUIRED) {
+					} else if (arg->flag_type == FLAG_ARG_REQUIRED) {
 						if (i + 1 >= argc) {
 							parse_error(
 								result,
@@ -215,7 +215,7 @@ b8 cli_parse(const fp_config *config, int argc, char **argv, fp_result *result)
 						}
 
 						value = argv[++i];
-					} else if (arg->arg_type == FLAG_ARG_OPTIONAL) {
+					} else if (arg->flag_type == FLAG_ARG_OPTIONAL) {
 						if (i + 1 < argc && argv[i + 1][0] != '-') {
 							value = argv[++i];
 						}
@@ -225,7 +225,7 @@ b8 cli_parse(const fp_config *config, int argc, char **argv, fp_result *result)
 				if (!add_parsed_arg(result, arg, value))
 					return parse_error(result, "out of memory");
 
-				if (arg->arg_type != FLAG_ARG_NONE)
+				if (arg->flag_type != FLAG_ARG_NONE)
 					break;
 			}
 
@@ -236,8 +236,8 @@ b8 cli_parse(const fp_config *config, int argc, char **argv, fp_result *result)
 			return parse_error(result, "out of memory");
 	}
 
-	for (u32 i = 0; i < config->arg_count; i++) {
-		const fp_flag *arg = &config->args[i];
+	for (u32 i = 0; i < config->flag_count; i++) {
+		const fp_flag *arg = &config->flags[i];
 
 		if (!arg->default_value)
 			continue;
@@ -257,21 +257,21 @@ void fp_result_free(fp_result *result)
 	if (!result)
 		return;
 
-	free(result->args);
+	free(result->flags);
 	free(result->positions.values);
 
 	memset(result, 0, sizeof(*result));
 }
 
-const fp_parsed_flag *fp_get_arg(const fp_result *result, const char *lname)
+const fp_parsed_flag *fp_get_flag(const fp_result *result, const char *lname)
 {
 	if (!result || !lname)
 		return NULL;
 
-	for (u32 i = 0; i < result->arg_count; i++) {
-		const fp_parsed_flag *parsed = &result->args[i];
+	for (u32 i = 0; i < result->flag_count; i++) {
+		const fp_parsed_flag *parsed = &result->flags[i];
 
-		if (parsed->arg->lname && strcmp(parsed->arg->lname, lname) == 0)
+		if (parsed->flag->lname && strcmp(parsed->flag->lname, lname) == 0)
 			return parsed;
 	}
 
@@ -280,7 +280,7 @@ const fp_parsed_flag *fp_get_arg(const fp_result *result, const char *lname)
 
 b8 fp_has_flag(const fp_result *result, const char *lname)
 {
-	return fp_get_arg(result, lname) != NULL;
+	return fp_get_flag(result, lname) != NULL;
 }
 
 void fp_print_help(const fp_config *config)
@@ -293,7 +293,7 @@ void fp_print_help(const fp_config *config)
 		config->program_name ? config->program_name : "program"
 	);
 
-	if (config->arg_count > 0)
+	if (config->flag_count > 0)
 		printf(" [ARGS...]");
 
 	putchar('\n');
@@ -320,8 +320,8 @@ void fp_print_usage(const fp_config *config)
 
 	u32 max_width = 0;
 
-	for (u32 i = 0; i < config->arg_count; i++) {
-		const fp_flag *arg = &config->args[i];
+	for (u32 i = 0; i < config->flag_count; i++) {
+		const fp_flag *arg = &config->flags[i];
 
 		if (arg->hidden)
 			continue;
@@ -337,15 +337,15 @@ void fp_print_usage(const fp_config *config)
 		if (arg->lname)
 			width += 2 + strlen(arg->lname);
 
-		if (arg->arg_type != FLAG_ARG_NONE && arg->value_type)
+		if (arg->flag_type != FLAG_ARG_NONE && arg->value_type)
 			width += 1 + strlen(arg->value_type);
 
 		if (width > max_width)
 			max_width = width;
 	}
 	
-	for (u32 i = 0; i < config->arg_count; i++) {
-		const fp_flag *arg = &config->args[i];
+	for (u32 i = 0; i < config->flag_count; i++) {
+		const fp_flag *arg = &config->flags[i];
 
 		if (arg->hidden)
 			continue;
@@ -385,7 +385,7 @@ void fp_print_usage(const fp_config *config)
 			position += length;
 		}
 
-		if (arg->arg_type != FLAG_ARG_NONE && arg->value_type) {
+		if (arg->flag_type != FLAG_ARG_NONE && arg->value_type) {
 			buffer[position++] = ' ';
 
 			u32 length = strlen(arg->value_type);

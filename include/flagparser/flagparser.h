@@ -13,7 +13,7 @@ typedef struct {
 	const char *sname;
 	const char *lname;
 
-	fp_flag_type arg_type;
+	fp_flag_type flag_type;
 	const char *value_type;
 	const char *default_value;
 
@@ -23,7 +23,7 @@ typedef struct {
 } fp_flag;
 
 typedef struct {
-	const fp_flag *arg;
+	const fp_flag *flag;
 	const char *value;
 } fp_parsed_flag;
 
@@ -33,8 +33,8 @@ typedef struct {
 } fp_flag_positions;
 
 typedef struct {
-	fp_parsed_flag *args;
-	u32 arg_count;
+	fp_parsed_flag *flags;
+	u32 flag_count;
 
 	fp_flag_positions positions;
 
@@ -46,12 +46,12 @@ typedef struct {
 	const char *version;
 	const char *description;
 
-	const fp_flag *args;
-	u32 arg_count;
+	const fp_flag *flags;
+	u32 flag_count;
 } fp_config;
 
 HAPI b8 fp_flag_parse(const fp_config *config, int argc, char **argv, fp_result *result);
-HAPI void fp_flag_result_free(fp_result *result);
+HAPI void fp_result_free(fp_result *result);
 
 HAPI const fp_parsed_flag *fp_get_flag(const fp_result *result, const char *lname);
 HAPI b8 fp_has_flag(const fp_result *result, const char *lname);

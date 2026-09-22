@@ -34,7 +34,7 @@ typedef double			f64;
 #endif
 
 #if defined(__clang__)
-	#define HAPI __attribute((visibility("default")))
+	#define HAPI __attribute__((visibility("default")))
 #else
 	#define HAPI
 #endif
