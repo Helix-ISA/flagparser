@@ -50,14 +50,14 @@ typedef struct {
 	u32 arg_count;
 } fp_config;
 
-b8 fp_flag_parse(const fp_config *config, int argc, char **argv, fp_result *result);
-void fp_flag_result_free(fp_result *result);
+HAPI b8 fp_flag_parse(const fp_config *config, int argc, char **argv, fp_result *result);
+HAPI void fp_flag_result_free(fp_result *result);
 
-const fp_parsed_flag *fp_get_flag(const fp_result *result, const char *lname);
-b8 fp_has_flag(const fp_result *result, const char *lname);
+HAPI const fp_parsed_flag *fp_get_flag(const fp_result *result, const char *lname);
+HAPI b8 fp_has_flag(const fp_result *result, const char *lname);
 
-void fp_print_help(const fp_config *config);
-void fp_print_usage(const fp_config *config);
-void fp_print_error(const fp_config *config, const char *message);
+HAPI void fp_print_help(const fp_config *config);
+HAPI void fp_print_usage(const fp_config *config);
+HAPI void fp_print_error(const fp_config *config, const char *message);
 
 #endif
