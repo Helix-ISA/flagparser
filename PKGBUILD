@@ -23,4 +23,3 @@ package() {
     install -m644 include/*.h \
         "$pkgdir/usr/include/flagparser/"
 }
-
