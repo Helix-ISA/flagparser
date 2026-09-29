@@ -1,6 +1,6 @@
 pkgname=flagparser
 pkgver=0.1.0
-pkgrel=4
+pkgrel=5
 pkgdesc="Flag parser"
 arch=('x86_64')
 license=('MIT')

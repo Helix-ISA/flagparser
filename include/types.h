@@ -1,5 +1,5 @@
-#ifndef HX_TYPES_H
-#define HX_TYPES_H
+#ifndef FP_TYPES_H
+#define FP_TYPES_H
 
 typedef char 			s8;
 typedef short 			s16;
